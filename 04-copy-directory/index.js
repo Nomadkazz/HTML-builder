@@ -1,4 +1,5 @@
 const fs = require('fs');
+const fsp = require('fs').promises;
 const path = require('path');
 
 const sourceDir = path.join(__dirname, 'files');
@@ -8,35 +9,28 @@ if (!fs.existsSync(targetDir)) {
   fs.mkdirSync(targetDir, { recursive: true });
 }
 
-function copyFile(source, target) {
-  const readStream = fs.createReadStream(source);
-  const writeStream = fs.createWriteStream(target);
+async function copyDirectory(source, destination) {
+    await fsp.mkdir(destination, { recursive: true });
 
-  readStream.on('error', err => console.error(`Failed to read file ${source}`, err));
-  writeStream.on('error', err => console.error(`Failed to write file ${target}`, err));
+    const files = await fsp.readdir(source);
+    for (const file of files) {
+        const sourcePath = path.join(source, file);
+        const destinationPath = path.join(destination, file);
+        const fileStat = await fsp.stat(sourcePath);
 
-  readStream.pipe(writeStream);
+        if (fileStat.isFile()) {
+            // await fs.copyFile(sourcePath, destinationPath);
+            const readStream = fs.createReadStream(sourcePath);
+            const writeStream = fs.createWriteStream(destinationPath);
+          
+            readStream.on('error', err => console.error(`Failed to read file ${sourcePath}`, err));
+            writeStream.on('error', err => console.error(`Failed to write file ${destinationPath}`, err));
+          
+            readStream.pipe(writeStream);
+        } else if (fileStat.isDirectory()) {
+            await copyDirectory(sourcePath, destinationPath);
+        }
+    }
 }
 
-fs.readdir(sourceDir, (err, files) => {
-  if (err) {
-    console.error('Failed to list files', err);
-    return;
-  }
-
-  files.forEach(file => {
-    const srcPath = path.join(sourceDir, file);
-    const destPath = path.join(targetDir, file);
-
-    fs.stat(srcPath, (err, stats) => {
-      if (err) {
-        console.error(`Failed to get stats for file ${srcPath}`, err);
-        return;
-      }
-
-      if (stats.isFile()) {
-        copyFile(srcPath, destPath);
-      }
-    });
-  });
-});
+copyDirectory(sourceDir, targetDir);
