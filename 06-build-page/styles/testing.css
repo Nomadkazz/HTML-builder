@@ -1,0 +1,7 @@
+.testing{
+    display: flex;
+    justify-content: space-around;
+    margin: 5rem;
+    border: 1px solid grey;
+    background: aliceblue;
+}

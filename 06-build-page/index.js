@@ -10,18 +10,20 @@ const TEMPLATE_FILE = path.join(__dirname, 'template.html');
 const DIST_DIR = path.join(__dirname, 'project-dist');
 const DIST_INDEX_FILE = path.join(DIST_DIR, 'index.html');
 const DIST_STYLE_FILE = path.join(DIST_DIR, 'style.css');
+const DIST_ASSETS = path.join(DIST_DIR, 'assets');
 
 async function main() {
   try {
-    await fsp.mkdir(DIST_DIR);
+    await fsp.mkdir(DIST_DIR, { recursive: true });
     await replaceTemplateTags();
     await mergeStyles(STYLES_DIR, DIST_STYLE_FILE);
-    await copyDirectory(ASSETS_DIR, path.join(DIST_DIR, 'assets'));
+    await copyDirectory(ASSETS_DIR, DIST_ASSETS);
   } catch (error) {
     console.error(error);
   }
 }
 
+//05-merge-styles
 async function mergeStyles(stylesDir, distDir){    
     var stylesList = [];
     
@@ -38,6 +40,7 @@ async function mergeStyles(stylesDir, distDir){
     fs.writeFileSync(distDir, stylesList.join('\n'));
 }
 
+//04-copy-directory
 async function copyDirectory(source, destination) {
     await fsp.mkdir(destination, { recursive: true });
 
@@ -61,41 +64,6 @@ async function copyDirectory(source, destination) {
         }
     }
 }
-
-// async function copyDirectory(sourceDir, targetDir){
-//     if (!fs.existsSync(targetDir)) {
-//       fs.mkdirSync(targetDir, { recursive: true });
-//     }    
-    
-//     fs.readdir(sourceDir, (err, files) => {
-//       if (err) {
-//         console.error('Failed to list files', err);
-//         return;
-//       }
-    
-//       files.forEach(file => {
-//         const srcPath = path.join(sourceDir, file);
-//         const destPath = path.join(targetDir, file);
-    
-//         fs.stat(srcPath, (err, stats) => {
-//           if (err) {
-//             console.error(`Failed to get stats for file ${srcPath}`, err);
-//             return;
-//           }
-    
-//           if (stats.isFile()) {
-//             const readStream = fs.createReadStream(srcPath);
-//             const writeStream = fs.createWriteStream(destPath);
-          
-//             readStream.on('error', err => console.error(`Failed to read file ${srcPath}`, err));
-//             writeStream.on('error', err => console.error(`Failed to write file ${destPath}`, err));
-          
-//             readStream.pipe(writeStream);
-//           }
-//         });
-//       });
-//     });
-// }
 
 async function replaceTemplateTags() {
   const templateContent = await fsp.readFile(TEMPLATE_FILE, 'utf-8');
