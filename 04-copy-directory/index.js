@@ -4,12 +4,10 @@ const path = require('path');
 const sourceDir = path.join(__dirname, 'files');
 const targetDir = path.join(__dirname, 'files-copy');
 
-// Create target directory if it doesn't exist
 if (!fs.existsSync(targetDir)) {
   fs.mkdirSync(targetDir, { recursive: true });
 }
 
-// Function to copy files from source to target directory
 function copyFile(source, target) {
   const readStream = fs.createReadStream(source);
   const writeStream = fs.createWriteStream(target);
@@ -20,7 +18,6 @@ function copyFile(source, target) {
   readStream.pipe(writeStream);
 }
 
-// Copy files from source to target directory
 fs.readdir(sourceDir, (err, files) => {
   if (err) {
     console.error('Failed to list files', err);
