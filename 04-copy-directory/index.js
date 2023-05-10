@@ -5,8 +5,18 @@ const path = require('path');
 const sourceDir = path.join(__dirname, 'files');
 const targetDir = path.join(__dirname, 'files-copy');
 
-if (!fs.existsSync(targetDir)) {
-  fs.mkdirSync(targetDir, { recursive: true });
+function deleteDirectoryRecursive(directoryPath) {
+    if (fs.existsSync(directoryPath)) {
+      fs.readdirSync(directoryPath).forEach((file) => {
+        const filePath = path.join(directoryPath, file);
+        if (fs.lstatSync(filePath).isDirectory()) {
+          deleteDirectoryRecursive(filePath);
+        } else {
+          fs.unlinkSync(filePath);
+        }
+      });
+      fs.rmdirSync(directoryPath);
+    }
 }
 
 async function copyDirectory(source, destination) {
@@ -33,4 +43,6 @@ async function copyDirectory(source, destination) {
     }
 }
 
+deleteDirectoryRecursive(targetDir)
+fs.mkdirSync(targetDir, { recursive: true });
 copyDirectory(sourceDir, targetDir);
